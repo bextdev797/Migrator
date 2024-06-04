@@ -14,7 +14,7 @@ Step 3. Paste it using (CTRL + V) to your Computer
 
 Step 4. Open your favorite ide for RUSH
 
-## Tutorial (how to migrate extension code to Niotron IDE, App Inventor Sources & Extension Templates)
+## Tutorial (how to migrate extension code from RUSH to Niotron IDE, App Inventor Sources & Extension Templates)
 
 Step 1. If you already migrated it with RUSH and want to put back to Niotron IDE, App Inventor Sources & Extension Templates 
 (JUST SIMPLY COPY IT!)
