@@ -90,17 +90,14 @@
             /\/\/\s*Assets/g
         ];
 
-        // Remove specific annotations
         annotationsToRemove.forEach(annotation => {
-            inputCode = inputCode.replace(annotation, 'String');
+            inputCode = inputCode.replace(annotation, '');
         });
 
-        // Remove specific import statements
         importsToRemove.forEach(importStatement => {
             inputCode = inputCode.replace(importStatement, '');
         });
 
-        // Remove specific comments
         commentsToRemove.forEach(comment => {
             inputCode = inputCode.replace(comment, '');
         });
