@@ -30,7 +30,7 @@
         }
         button {
             padding: 10px 20px;
-            background-color: #28a745;
+            background-color: #ADD8E6;
             color: #fff;
             border: none;
             border-radius: 4px;
@@ -38,7 +38,7 @@
             font-size: 16px;
         }
         button:hover {
-            background-color: #218838;
+            background-color: #00008B;
         }
         .output {
             width: 80%;
@@ -52,18 +52,58 @@
             white-space: pre-wrap;
             overflow-y: auto;
         }
+        select, input[type="text"] {
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+        }
     </style>
 </head>
 <body>
 
 <h1>Migrator</h1>
-<textarea id="inputCode" placeholder="Paste your Niotron IDE, App Inventor Sources & Extension Template code here..."></textarea>
+<select id="conversionType">
+    <option value="toRush">Migrate to RUSH</option>
+    <option value="toNiotron">Migrate to Niotron IDE/App Inventor</option>
+</select>
+
+<select id="optionsChoice">
+    <option value="noOptions">No Options</option>
+    <option value="withOptions">With Options</option>
+</select>
+
+<input type="text" id="optionsClassName" placeholder="Enter Options class file name" style="display:none;">
+<select id="optionsPlacement" style="display:none;">
+    <option value="parameter">In Parameter</option>
+    <option value="public">Near Public</option>
+</select>
+
+<textarea id="inputCode" placeholder="Paste your code here..."></textarea>
 <button onclick="migrateCode()">Migrate Code</button>
 <div class="output" id="outputCode"></div>
 
 <script>
+    document.getElementById('optionsChoice').addEventListener('change', function() {
+        const optionsChoice = document.getElementById('optionsChoice').value;
+        const optionsClassName = document.getElementById('optionsClassName');
+        const optionsPlacement = document.getElementById('optionsPlacement');
+        if (optionsChoice === 'withOptions') {
+            optionsClassName.style.display = 'block';
+            optionsPlacement.style.display = 'block';
+        } else {
+            optionsClassName.style.display = 'none';
+            optionsPlacement.style.display = 'none';
+        }
+    });
+
     function migrateCode() {
-        let inputCode = document.getElementById('inputCode').value;
+        const inputCode = document.getElementById('inputCode').value;
+        const conversionType = document.getElementById('conversionType').value;
+        const optionsChoice = document.getElementById('optionsChoice').value;
+        const optionsClassName = document.getElementById('optionsClassName').value;
+        const optionsPlacement = document.getElementById('optionsPlacement').value;
 
         const annotationsToRemove = [
             /@DesignerComponent\([\s\S]*?\)/g,
@@ -90,20 +130,47 @@
             /\/\/\s*Assets/g
         ];
 
-        annotationsToRemove.forEach(annotation => {
-            inputCode = inputCode.replace(annotation, '');
-        });
+        let outputCode = inputCode;
 
-        importsToRemove.forEach(importStatement => {
-            inputCode = inputCode.replace(importStatement, '');
-        });
+        if (conversionType === 'toRush') {
+            annotationsToRemove.forEach(annotation => {
+                outputCode = outputCode.replace(annotation, '');
+            });
 
-        commentsToRemove.forEach(comment => {
-            inputCode = inputCode.replace(comment, '');
-        });
+            importsToRemove.forEach(importStatement => {
+                outputCode = outputCode.replace(importStatement, '');
+            });
 
-        // Display the migrated code
-        document.getElementById('outputCode').innerText = inputCode.trim();
+            commentsToRemove.forEach(comment => {
+                outputCode = outputCode.replace(comment, '');
+            });
+
+        } else if  (conversionType === 'toNiotron') {
+            const designerComponentAnnotation = `
+             @DesignerComponent(
+              version = 1,
+              description = "",
+              category = ComponentCategory.EXTENSION,
+              nonVisible = true,
+              iconName = "")
+             @SimpleObject(external = true)
+             // Libraries
+             @UsesLibraries(libraries = "")
+            // Permissions
+            @UsesPermissions(permissionNames = "")`;
+            outputCode = designerComponentAnnotation + '\n' + outputCode;
+
+            if (optionsChoice === 'withOptions' && optionsClassName) {
+                const optionsAnnotation = `@Options(${optionsClassName}.class)`;
+                if (optionsPlacement === 'parameter') {
+                    outputCode = outputCode.replace(/(\w+)\s+(\w+)\s*\(/g, `${optionsAnnotation} $1 $2(`);
+                } else if (optionsPlacement === 'public') {
+                    outputCode = outputCode.replace(/(public\s+\w+\s+\w+\s*\()/g, `${optionsAnnotation} $1`);
+                }
+            }
+        }
+
+        document.getElementById('outputCode').innerText = outputCode.trim();
     }
 </script>
 
